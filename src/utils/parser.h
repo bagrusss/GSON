@@ -176,7 +176,7 @@ class Parser {
 
     // получить тип по индексу
     Type type(int idx) const {
-        return ((uint16_t)idx < length()) ? ents[idx].type : Type::None;
+        return ((uint16_t)idx < length()) ? ents[idx].getType() : Type::None;
     }
 
     // прочитать тип по индексу
@@ -335,7 +335,7 @@ class Parser {
                     }
                     if (length() == GSON_MAX_INDEX - 1) return Error::IndexOverflow;
 
-                    ebuf.type = (*strp == '{') ? Type::Object : Type::Array;
+                    ebuf.setType((*strp == '{') ? Type::Object : Type::Array);
                     ebuf.parent = parent;
                     if (!ents.push(ebuf)) return Error::Alloc;
                     ebuf.reset();
@@ -352,7 +352,7 @@ class Parser {
 
                 case '}':
                 case ']': {
-                    if (state != State::Idle || ents[parent].type != ((*strp == '}') ? Type::Object : Type::Array)) {
+                    if (state != State::Idle || ents[parent].getType() != ((*strp == '}') ? Type::Object : Type::Array)) {
                         return Error::UnexClose;
                     }
                     return Error::None;
@@ -368,21 +368,21 @@ class Parser {
                     switch (*strp) {
                         case 't':
                         case 'f':
-                            ebuf.type = Type::Bool;
+                            ebuf.setType(Type::Bool);
                             break;
                         case '-':
                         case '0' ... '9':
-                            ebuf.type = Type::Int;
+                            ebuf.setType(Type::Int);
                             break;
                         case 'n':
-                            ebuf.type = Type::Null;
+                            ebuf.setType(Type::Null);
                             break;
                         default:
                             return Error::UnknownToken;
                     }
                     while (true) {
                         if (*strp == '.') {
-                            if (ebuf.is(Type::Int)) ebuf.type = Type::Float;
+                            if (ebuf.is(Type::Int)) ebuf.setType(Type::Float);
                             else return Error::UnknownToken;
                         }
                         if (strp + 1 >= endp || !strp[1]) return Error::BrokenToken;
@@ -439,7 +439,7 @@ class Parser {
                 if (length() == GSON_MAX_INDEX - 1) return Error::IndexOverflow;
                 ebuf.val_len = strp - ebuf.value(ents.str);
                 ebuf.parent = parent;
-                ebuf.type = Type::String;
+                ebuf.setType(Type::String);
                 if (!ents.push(ebuf)) return Error::Alloc;
                 ebuf.reset();
                 state = State::Idle;

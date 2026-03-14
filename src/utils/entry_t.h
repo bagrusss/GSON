@@ -42,7 +42,7 @@ struct Entry_t {
     uint16_t val_len;       // 16 bit
 #else                       // GSON_NO_LIMITS
     gson::parent_t parent : GSON_PARENT_BIT;  // 512/256
-    gson::Type type : 3;                      // 8
+    uint8_t type : 3;                         // 7
     uint8_t key_len : 5;                      // 31
     uint16_t val_len : 15;                    // 32 767
 #endif                      // GSON_NO_LIMITS
@@ -52,7 +52,7 @@ struct Entry_t {
 
     void reset() {
         key_offs = val_offs = key_len = val_len = 0;
-        type = gson::Type::None;
+        setType(gson::Type::None);
     }
 
     inline const char* key(const char* json) const {
@@ -70,7 +70,7 @@ struct Entry_t {
     }
 
     inline bool is(gson::Type t) const {
-        return type == t;
+        return getType() == t;
     }
     bool isContainer() const {
         return is(gson::Type::Array) || is(gson::Type::Object);
@@ -80,6 +80,13 @@ struct Entry_t {
     }
     inline bool isArray() const {
         return is(gson::Type::Array);
+    }
+
+    inline gson::Type getType() const {
+        return gson::Type(type);
+    }
+    inline void setType(gson::Type t) {
+        type = uint8_t(t);
     }
 };
 

@@ -141,12 +141,12 @@ class Entry : public Text {
 
     // получить тип элемента
     gson::Type type() const {
-        return _valid() ? (*ens)[idx].type : gson::Type::None;
+        return _valid() ? (*ens)[idx].getType() : gson::Type::None;
     }
 
     // сравнить тип элемента
     bool is(gson::Type type) const {
-        return _valid() ? (*ens)[idx].type == type : false;
+        return _valid() ? (*ens)[idx].getType() == type : false;
     }
 
     // элемент Array или Object

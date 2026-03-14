@@ -47,7 +47,7 @@ class rawstring : protected gtl::stack<char> {
     // ================= NUM =================
 
     void concat(bool b) {
-        b ? concat(F("true"), 4) : concat(F("false"), 5);
+        concat(b ? '1' : '0');
     }
 
     void concat(signed char val) {
@@ -60,10 +60,10 @@ class rawstring : protected gtl::stack<char> {
         concat((long)val);
     }
     void concat(long val) {
-        if (addCapacity(12)) _len += su::intToStr(val, buf() + _len);
+        if (addCapacity(12)) addLength(su::intToStr(val, end()));
     }
     void concat(long long val) {
-        if (addCapacity(21)) _len += su::int64ToStr(val, buf() + _len);
+        if (addCapacity(21)) addLength(su::int64ToStr(val, end()));
     }
 
     void concat(unsigned char val) {
@@ -76,10 +76,10 @@ class rawstring : protected gtl::stack<char> {
         concat((unsigned long)val);
     }
     void concat(unsigned long val) {
-        if (addCapacity(12)) _len += su::uintToStr(val, buf() + _len);
+        if (addCapacity(12)) addLength(su::uintToStr(val, end()));
     }
     void concat(unsigned long long val) {
-        if (addCapacity(21)) _len += su::uint64ToStr(val, buf() + _len);
+        if (addCapacity(21)) addLength(su::uint64ToStr(val, end()));
     }
 
     void concat(float val, uint8_t dec = 2) {
@@ -89,8 +89,8 @@ class rawstring : protected gtl::stack<char> {
         }
         uint8_t len = su::floatLen(val, dec);
         if (addCapacity(len + 1)) {
-            dtostrf(val, dec ? dec + 2 : 1, dec, buf() + _len);
-            _len += len;
+            dtostrf(val, 0, dec, end());
+            addLength(len);
         }
     }
     void concat(double val, uint8_t dec = 2) {
@@ -130,10 +130,11 @@ class Str : public Printable, public rawstring {
         _resetNc();
     }
     void operator+=(const Str& str) {
-        if (!str.length()) return;
-        _checkNc();
-        concat(str);
-        _resetNc();
+        *this = str;
+    }
+
+    void concat(bool b) {
+        b ? concat(F("true"), 4) : concat(F("false"), 5);
     }
 
     // =================== VAL ===================
@@ -163,8 +164,14 @@ class Str : public Printable, public rawstring {
     }
 
     // =================== NULL ===================
-    void operator=(nullptr_t) { _null(); }
-    void operator+=(nullptr_t) { _null(); }
+    void operator=(nullptr_t) { null(); }
+    void operator+=(nullptr_t) { null(); }
+
+    void null() {
+        _checkNc();
+        concat(F("null"), 4);
+        _resetNc();
+    }
 
     // =================== STR ===================
     void operator=(char s) { _str(s); }
@@ -269,11 +276,6 @@ class Str : public Printable, public rawstring {
         push('\"');
         push(ch);
         push('\"');
-        _resetNc();
-    }
-    void _null() {
-        _checkNc();
-        concat(F("null"), 4);
         _resetNc();
     }
     inline void _checkNc() {
