@@ -123,6 +123,11 @@ class Str : public Printable, public rawstring {
         return p.write(buf(), length());
     }
 
+    void clear() {
+        rawstring::clear();
+        _nc = false;
+    }
+
     void operator=(const Str& str) {
         if (!str.length()) return;
         _checkNc();
